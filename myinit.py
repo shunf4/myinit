@@ -585,7 +585,7 @@ def command_unpack(opts: dict, rest_argv: List[str]):
                         print(f'dry: created dir {system_dir_path.as_posix()}')
 
                     if not opts["dry"]:
-                        os.replace(overwrite_src_file_path, system_file_path)
+                        shutil.copy(overwrite_src_file_path, system_file_path)
                     else:
                         print(f'dry: moved {overwrite_src_file_path} to {system_file_path}')
                 elif decided_operation == "skip":
