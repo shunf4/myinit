@@ -4,5 +4,4 @@ config.yaml
 myinit.spec
 build/
 spec/
-myinit
 
