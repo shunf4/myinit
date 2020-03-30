@@ -3,3 +3,6 @@ config.yaml
 *.tar.gz
 myinit.spec
 build/
+spec/
+myinit
+
