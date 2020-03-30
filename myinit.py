@@ -332,13 +332,27 @@ def command_unpack(opts: dict, rest_argv: List[str]):
         workspace_conf_exists = workspace_conf_obj.exists()
     except Exception:
         traceback.print_exc()
+        ask_value: str = ask("_", f'{workspace_conf_obj.as_posix()} can not be accessed. If you continue, unpacked files will forcibly overwrite files in the system. Continue? ', [
+            "yes",
+            "no",
+            "exit"
+       ])
 
-    if workspace_conf_obj.exists():
+        if ask_value != "yes":
+            sys.exit(1)
+
+    if workspace_conf_exists:
         curr_ver_config = read_config_in_path(workspace_conf_obj.as_posix())
         workspace_archive_obj = workspace_dir_obj / make_archive_filename(curr_ver_config)
 
-        if not workspace_archive_obj.exists():
-            ask_value: str = ask("_", f'{workspace_archive_obj.as_posix()} does not exists. If you continue, unpacked files will forcibly overwrite files in the system. Continue? ', [
+        workspace_archive_exists = False
+        try:
+            workspace_archive_exists = workspace_archive_obj.exists()
+        except Exception:
+            traceback.print_exc()
+        
+        if not workspace_archive_exists:
+            ask_value: str = ask("_", f'{workspace_archive_obj.as_posix()} does not exists or the access is denied. If you continue, unpacked files will forcibly overwrite files in the system. Continue? ', [
                 "yes",
                 "no",
                 "exit"
