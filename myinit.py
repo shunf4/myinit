@@ -53,10 +53,16 @@ def warn_color(s: str):
 def info_color(s: str):
     return bcolors.OKBLUE + s + bcolors.ENDC
 
+def error_color(s: str):
+    return bcolors.FAIL + s + bcolors.ENDC
+
+
 dbg_print = do_nothing
 eprint = functools.partial(print, file=sys.stderr)
 # dbg_print = lambda *args, **kwargs: eprint(info_color(args[0]), *args[1:], **kwargs)
+print = lambda *args, **kwargs: eprint(info_color(args[0]), *args[1:], **kwargs)
 warn_print = lambda *args, **kwargs: eprint(warn_color(args[0]), *args[1:], **kwargs)
+error_print = lambda *args, **kwargs: eprint(error_color(args[0]), *args[1:], **kwargs)
 
 AskStorage = {}
 RecognizedOpts = ["yes", "no", "exit", "all", "overwrite", "skip", "resolve"]
@@ -80,7 +86,7 @@ def ask(storage_token: str, prompt: str, opts: List[str]):
             raise ValueError(f'unrecognized option: {opt}')
 
     while True:
-        input_value = input(prompt + f'[{"/".join(capitalized_opts)}]: ')
+        input_value = input(warn_color(prompt + f'[{"/".join(capitalized_opts)}]: '))
 
         index: int
         if input_value == "":
