@@ -17,6 +17,7 @@ import pathlib
 import tempfile
 import io
 import shutil
+import traceback
 
 @dataclass
 class CommandFuncEntry:
@@ -95,7 +96,7 @@ def ask(storage_token: str, prompt: str, opts: List[str]):
         response: str = opts[index]
 
         if response == "exit":
-            exit(1)
+            sys.exit(1)
 
         if response == "all":
             response = "yes"
@@ -208,7 +209,7 @@ def resolve_var_ref(prompt_var_name: str, var_ref: Union[str, dict], entry: dict
             ])
 
         if ask_value != "yes":
-            exit(1)
+            sys.exit(1)
 
     return result
 
@@ -275,7 +276,7 @@ def config_check_user(config: dict):
         ])
 
         if ask_value != "yes":
-            exit(1)
+            sys.exit(1)
 
 def file_like_pipe(file_from: IO, file_to: IO):
     while True:
@@ -326,6 +327,12 @@ def command_unpack(opts: dict, rest_argv: List[str]):
     else:
         print(f'dry: created dir {workspace_dir_obj.as_posix()}')
 
+    workspace_conf_exists = False
+    try:
+        workspace_conf_exists = workspace_conf_obj.exists()
+    except Exception:
+        traceback.print_exc()
+
     if workspace_conf_obj.exists():
         curr_ver_config = read_config_in_path(workspace_conf_obj.as_posix())
         workspace_archive_obj = workspace_dir_obj / make_archive_filename(curr_ver_config)
@@ -338,7 +345,7 @@ def command_unpack(opts: dict, rest_argv: List[str]):
             ])
 
             if ask_value != "yes":
-                exit(1)
+                sys.exit(1)
 
             curr_ver_config = None
         else:
@@ -422,7 +429,7 @@ def command_unpack(opts: dict, rest_argv: List[str]):
                             "exit"
                         ])
                         if ask_value != "yes":
-                            exit(1)
+                            sys.exit(1)
 
                 system_file_obj: Union[None, IO] = None
                 archive_new_file_obj = tar.extractfile(tar.getmember(archive_file_path))
