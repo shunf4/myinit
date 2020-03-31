@@ -1,4 +1,3 @@
-#!/usr/bin/python3.7
 import yaml
 import sys
 import getopt
