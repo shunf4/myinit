@@ -679,11 +679,12 @@ def command_pack(opts: dict, rest_argv: List[str]):
             continue
 
         for file in entry.get("files", []):
-            if file.get("fromExtraArchiveDir", False):
-                continue
-
             archive_file_path = os.path.join(resolve_var_ref_in_dict_by_key(file, "archiveDir", entry["id"] + "/" + file["name"] + "/", entry, config), file["name"])
             system_file_path = os.path.join(resolve_var_ref_in_dict_by_key(file, "systemDir", entry["id"] + "/" + file["name"] + "/", entry, config), file["name"])
+
+            if archive_file_path.startswith(resolve_var_ref_in_dict_by_key(Consts, "ExtraArchiveFilePrefix", "", entry, config)):
+                continue
+
             system_file = open(system_file_path, "rb")
 
             new_member = tar.gettarinfo(system_file_path, archive_file_path, system_file)
