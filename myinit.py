@@ -727,14 +727,14 @@ def init():
 
 def main():
     init()
-    opts_raw, args = getopt.gnu_getopt(sys.argv[1:], "-d-a", ["dry", "auto-default"])
+    opts_raw, args = getopt.gnu_getopt(sys.argv[1:], "-d-a-v", ["dry", "auto-default", "value-auto-default"])
     opts = {
         "dry": False
     }
 
     if len(args) == 0:
-        eprint(f'Usage: {sys.argv[0]} unpack [-d] [--dry] [-a] [--ask-auto-default] [-v] [--value-auto-default] <archive>.tar.gz')
-        eprint(f'       {sys.argv[0]} pack [-a] [--auto-default]')
+        eprint(f'Usage: {sys.argv[0]} {{unpack u}} [-d] [--dry] [-a] [--ask-auto-default] [-v] [--value-auto-default] <archive>.tar.gz')
+        eprint(f'       {sys.argv[0]} {{pack}} [-a] [--ask-auto-default] [-v] [--value-auto-default] [--auto-default]')
         sys.exit(3)
 
     for opt_raw in opts_raw:
