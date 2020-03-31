@@ -39,7 +39,11 @@ Consts: dict = {
     "MyInitDir": os.path.abspath(os.path.dirname(os.path.abspath(__file__))).strip("/\\") + "/",
     "TmpSystemDir": "/tmp/",
     "ExtraArchiveFilePrefix": "__extra__/",
-    "AutomaticallyUseDefault": False
+    "ValueAutomaticallyUseDefault": False,
+    "AskAutomaticallyUseDefault": False,
+}
+
+Overrides: dict = {
 }
 
 str_formatter = string.Formatter()
@@ -88,7 +92,10 @@ def ask(storage_token: str, prompt: str, opts: List[str]):
             raise ValueError(f'unrecognized option: {opt}')
 
     while True:
-        input_value = input(prompt + f'[{"/".join(capitalized_opts)}]: ')
+        if Overrides.get("AskAutomaticallyUseDefault", False):
+            input_value = opts[0]
+        else:
+            input_value = input(prompt + f'[{"/".join(capitalized_opts)}]: ')
 
         index: int
         if input_value == "":
@@ -168,6 +175,7 @@ def resolve_var_ref_worker(prompt_var_name: str, var_ref: Union[str, dict], entr
 
     ref_var_name = var_ref.get("refVar", None)
     if ref_var_name is not None:
+        
         entry_scope_dict: dict
         if entry is not None:
             entry_scope_dict = entry.get("varDict", {})
@@ -177,7 +185,9 @@ def resolve_var_ref_worker(prompt_var_name: str, var_ref: Union[str, dict], entr
         config_scope_dict: dict
         config_scope_dict = config.get("commonVarDict", {})
         
-        if ref_var_name in entry_scope_dict:
+        if ref_var_name in Overrides:
+            refed_var_ref = Overrides[ref_var_name]
+        elif ref_var_name in entry_scope_dict:
             refed_var_ref = entry_scope_dict[ref_var_name]
         elif ref_var_name in config_scope_dict:
             refed_var_ref = config_scope_dict[ref_var_name]
@@ -192,7 +202,7 @@ def resolve_var_ref_worker(prompt_var_name: str, var_ref: Union[str, dict], entr
     default_value = var_ref.get("defaultValue", None)
     input_value: str = ""
     if default_value is not None:
-        will_auto_resolve = resolve_var_ref("ResolvingAutomaticallyUseDefault", { "refVar": "AutomaticallyUseDefault" }, entry, config, depth + 1)
+        will_auto_resolve = resolve_var_ref("ResolvingValueAutomaticallyUseDefault", { "refVar": "ValueAutomaticallyUseDefault" }, entry, config, depth + 1)
 
         if not will_auto_resolve:
             input_value = input(f'Input value for variable {prompt_var_name}{("(" + var_ref["description"] + ")") if "description" in var_ref else ""} [Default={default_value}]: ')
@@ -339,7 +349,7 @@ def command_unpack(opts: dict, rest_argv: List[str]):
     try:
         workspace_conf_exists = workspace_conf_obj.exists()
     except Exception:
-        traceback.print_exc()
+        error_print(traceback.format_exc())
         ask_value: str = ask("_", f'{workspace_conf_obj.as_posix()} can not be accessed. If you continue, unpacked files will forcibly overwrite files in the system. Continue? ', [
             "yes",
             "no",
@@ -357,7 +367,7 @@ def command_unpack(opts: dict, rest_argv: List[str]):
         try:
             workspace_archive_exists = workspace_archive_obj.exists()
         except Exception:
-            traceback.print_exc()
+            error_print(traceback.format_exc())
         
         if not workspace_archive_exists:
             ask_value: str = ask("_", f'{workspace_archive_obj.as_posix()} does not exists or the access is denied. If you continue, unpacked files will forcibly overwrite files in the system. Continue? ', [
@@ -520,12 +530,12 @@ def command_unpack(opts: dict, rest_argv: List[str]):
 
                     if not old_equals_system and file_is_text:
                         ask_value: str = ask("conflict", f'{system_file_path} is modified since the installation of last version. Overwrite, skip or resolve conflict? ', [
-                            "overwrite",
-                            "skip",
                             "resolve",
-                            "alwaysoverwrite",
-                            "alwaysskip",
+                            "skip",
+                            "overwrite",
                             "alwaysresolve",
+                            "alwaysskip",
+                            "alwaysoverwrite",
                             "exit"
                         ])
 
@@ -552,10 +562,10 @@ def command_unpack(opts: dict, rest_argv: List[str]):
                             raise RuntimeError(f'unexpected response: {ask_value}')
                     elif not old_equals_system:
                         ask_value: str = ask("conflict_bin", f'{system_file_path} (binary) is modified since the installation of last version. Overwrite or skip? ', [
-                            "overwrite",
                             "skip",
-                            "alwaysoverwrite",
+                            "overwrite",
                             "alwaysskip",
+                            "alwaysoverwrite",
                             "exit"
                         ])
 
@@ -717,18 +727,31 @@ def init():
 
 def main():
     init()
-    opts_raw, args = getopt.getopt(sys.argv[1:], "-d", ["dry"])
+    opts_raw, args = getopt.gnu_getopt(sys.argv[1:], "-d-a", ["dry", "auto-default"])
     opts = {
         "dry": False
     }
 
+    if len(args) == 0:
+        eprint(f'Usage: {sys.argv[0]} unpack [-d] [--dry] [-a] [--ask-auto-default] [-v] [--value-auto-default] <archive>.tar.gz')
+        eprint(f'       {sys.argv[0]} pack [-a] [--auto-default]')
+        sys.exit(3)
+
     for opt_raw in opts_raw:
         if opt_raw[0] == "-d" or opt_raw[0] == "--dry":
             opts["dry"] = True
+        if opt_raw[0] == "-a" or opt_raw[0] == "--ask-auto-default":
+            Overrides["AskAutomaticallyUseDefault"] = True
+        if opt_raw[0] == "-v" or opt_raw[0] == "--value-auto-default":
+            Overrides["ValueAutomaticallyUseDefault"] = True
 
     cfe: CommandFuncEntry
     for cfe in COMMAND_FUNC_ENTRIES:
         if args[0] in cfe.command_names:
             cfe.func(opts, args[1:])
 
-main()
+try:
+    main()
+except Exception:
+    error_print(traceback.format_exc())
+    sys.exit(2)
