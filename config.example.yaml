@@ -26,7 +26,7 @@ commonVarDict:
   TmpSystemDir:
     value: "/tmp/"
   AutomaticallyUseDefault: false
-  WorkspaceDir: "/root/riv_conf_ws/"
+  WorkspaceDir: "/root/my_ws/"
 
 entries:
   - name: command executer 1
