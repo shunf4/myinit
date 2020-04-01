@@ -9,9 +9,11 @@
 
 工作区是这样的一个目录：
 
+```
 /path/to/workspace/:
     - config.yaml # 此存档包的配置文件
     - __extra__ # 配置文件所用到的额外文件目录
+```
 
 ### 打包流程
 
@@ -36,14 +38,14 @@ python3.7 myinit.py unpack ./[archive].tar.gz
 ```
 
 ```
-[.tar.gz] =] [system files]
+[.tar.gz] => [system files]
 copy [.tar.gz] to /path/to/workspace/
-[.tar.gz] =] /path/to/workspace/config.yaml # 此两项用来生成新存档包，以及版本追踪
-[.tar.gz] =] /path/to/workspace/__extra__/ # 此两项用来生成新存档包，以及版本追踪
+[.tar.gz] => /path/to/workspace/config.yaml # 此两项用来生成新存档包，以及版本追踪
+[.tar.gz] => /path/to/workspace/__extra__/ # 此两项用来生成新存档包，以及版本追踪
 ```
 
 ### 版本管理
 
 myinit 会在配置里指定的工作区里检测 `config.yaml` 和对应版本的存档包，来确认当前系统是否已经解包过上一版本的此存档包。如果上一版本存档包对应的文件被修改过，解包新存档包时会提示用户解决此文件的冲突，而不会覆盖，以保证安全。
 
-详见 `config.example.yaml`.
+详见 [config.example.yaml](config.example.yaml).
