@@ -1,0 +1,93 @@
+specVersion: 1
+confVersion: 1
+id: my_ubuntu_conf
+expectAsUser: root
+
+# list common variables.
+# format: {"varname": varObject, ...}
+commonVarDict:
+  var1: "value1" # varObject can be a string, which is intuitive
+  var2:
+    value: "value2" # varObject can be {"value": "a string"}, fixing its value
+  var3:
+    defaultValue: "value3" # varObject can be {"defaultValue": "a string"}. When this type of var is being resolved, myinit will ask the user for its value. The user can hit return key to use the default Value.
+  var4: {} # varObject can be {}. When this type of var is being resolved, myinit will ask the user for its value.
+  var5:
+    refVar: var1 # varObject can be {"refVar": "anotherVarName"} referenced a variable. Note: every var reference is looked up again from the very context of the start of variable resolving (e.g. in an entry, every refVar is resolved by first looking at its varDict, no matter where the currently referencing varObject is)
+  var6: "{var3} wow wow" # varObject can be a string which in python3 uses a string formatter. In this case the referenced variables will be resolved in the same way as refVar.
+  var7: # its final value will be "{var4} <- do not resolve this!" itself
+    value: "{var4} <- do not resolve this!"
+    doNotFormat: true
+
+  wow/file_adder/myArchiveDir: "etc/" # dirs must end with a backslash. Archive dirs must NOT start with a backslash.
+  wow/file_adder/mySystemDir: "/etc/" # System dirs must start with a backslash.
+
+  # Those vars with a name whose first letter is capitalized is critical to the running of the script
+  TmpSystemDir:
+    value: "/tmp/"
+  AutomaticallyUseDefault: false
+  WorkspaceDir: "/root/riv_conf_ws/"
+
+entries:
+  - name: command executer 1
+    id: wow/command1
+    type: command
+    command:
+      value: |
+        set -eo pipefail
+
+        SUCCEED=1
+
+        echo "Hi!"
+
+        if [ $SUCCEED -gt 0 ]; then
+          exit 0
+        else
+          exit 1
+        fi
+      doNotFormat: true
+    asUser: nobody
+
+  - name: command executer 2
+    id: wow/command2
+    type: command
+    command:
+      value: |
+        set -eo pipefail
+
+        SUCCEED=1
+
+        echo "Hello {myself}!"
+
+        if [ $SUCCEED -gt 0 ]; then
+          exit 0
+        else
+          exit 1
+        fi
+    varDict: # varDict is first checked when resolving a var
+      myself:
+        refVar: myself_2
+      myself_2:
+        refVar: CurrentUser # CurrentUser is a var that is provided by myinit, finally resolving to the current user name. See Consts[] and init() in myinit.py.
+
+  - name: file adder
+    id: wow/file_adder
+    type: file
+    askForConfirm: true # false by default
+    files:
+      - name: "a.sh"
+        archiveDir:
+          refVar: wow/file_adder/myArchiveDir
+        systemDir:
+          refVar: wow/file_adder/mySystemDir
+        owner: "root:root"
+        mode: "0644"
+        expectWhenUnpack: none # notExist | exist | none
+
+      - name: "b.sh"
+        archiveDir: "var/" # when unpacking, will extract from var/b.sh in archive file. Vice versa for packing.
+        systemDir: "/var/" # when packing will extract to /var/b.sh in system. Vice versa for packing.
+
+      - name: "c.sh"
+        archiveDir: "{ExtraArchiveFilePrefix}wowwow/" # will extract from __extra__/wowwow/c.sh in archive file. Won't do anything when packing.
+        systemDir: "{TmpSystemDir}" # will extract to /tmp/b.sh in system. Won't do anything when packing.
