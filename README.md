@@ -1,6 +1,6 @@
 ## myinit - 简要解释
 
-需要目标系统有 python3.7 和 pyyaml 这个 pip 依赖。也可以试试用 pyinstaller 打包的可执行文件 `_myinit`，但会出问题，不推荐。
+需要目标系统有 bash、vim（你也可以不用但是要指定 EDITOR 环境变量为你喜欢的编辑器）、 python3.7 和 pyyaml 这个 pip 依赖。也可以试试用 pyinstaller 打包的可执行文件 `_myinit`，但会出问题，不推荐。
 
 - [.tar.gz]：存档包
 - [workspace]：配置指定的文件系统中某处的工作区（被用作 build 和版本管理）
