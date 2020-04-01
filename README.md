@@ -1,9 +1,11 @@
 ## myinit - 简要解释
 
-- <.tar.gz>：存档包
-- <workspace>：配置指定的文件系统中某处的工作区（被用作 build 和版本管理）
-- <system>：文件系统
-- <entry>：配置文件中的条目，每一个条目可以是“文件类型”（大多数是此类型，将存档包中的某个成员和文件系统中的某个位置做关联）和“命令类型”（只在解包时有用，执行此条目时会执行条目内指定的 bash 脚本）
+需要目标系统有 python3.7 和 pyyaml 这个 pip 依赖。也可以试试用 pyinstaller 打包的可执行文件 `_myinit`，但会出问题，不推荐。
+
+- [.tar.gz]：存档包
+- [workspace]：配置指定的文件系统中某处的工作区（被用作 build 和版本管理）
+- [system]：文件系统
+- [entry]：配置文件中的条目，每一个条目可以是“文件类型”（大多数是此类型，将存档包中的某个成员和文件系统中的某个位置做关联）和“命令类型”（只在解包时有用，执行此条目时会执行条目内指定的 bash 脚本）
 
 工作区是这样的一个目录：
 
@@ -16,28 +18,28 @@
 ```
 cd /path/to/workspace/
 python3.7 myinit.py pack
-# 会在当前工作区生成 <config_id>.<config_version>.tar.gz
+# 会在当前工作区生成 [config_id].[config_version].tar.gz
 ```
 
 ```
-<.tar.gz> <= <system files>
-<.tar.gz> <= /path/to/workspace/config.yaml
-<.tar.gz> <= /path/to/workspace/__extra__/
+[.tar.gz] <= [system files]
+[.tar.gz] <= /path/to/workspace/config.yaml
+[.tar.gz] <= /path/to/workspace/__extra__/
 ```
 
 ### 解包流程
 
 ```
-cd /path/to/<archive>.tar.gz
-python3.7 myinit.py unpack ./<archive>.tar.gz
-# 将会顺次执行 <archive>.tar.gz 中 config.yaml 中所有条目，将文件解包到系统，并执行配置里指定的脚本文件
+cd /path/to/[archive].tar.gz
+python3.7 myinit.py unpack ./[archive].tar.gz
+# 将会顺次执行 [archive].tar.gz 中 config.yaml 中所有条目，将文件解包到系统，并执行配置里指定的脚本文件
 ```
 
 ```
-<.tar.gz> => <system files>
-copy <.tar.gz> to /path/to/workspace/
-<.tar.gz> => /path/to/workspace/config.yaml # 此两项用来版本追踪
-<.tar.gz> => /path/to/workspace/__extra__/ # 此两项用来版本追踪
+[.tar.gz] =] [system files]
+copy [.tar.gz] to /path/to/workspace/
+[.tar.gz] =] /path/to/workspace/config.yaml # 此两项用来生成新存档包，以及版本追踪
+[.tar.gz] =] /path/to/workspace/__extra__/ # 此两项用来生成新存档包，以及版本追踪
 ```
 
 ### 版本管理
