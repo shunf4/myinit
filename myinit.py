@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import yaml
+from pyyaml.lib3 import yaml
 import sys
 import getopt
 import os

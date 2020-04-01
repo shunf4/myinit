@@ -1,0 +1,3 @@
+[submodule "lib3/yaml"]
+	path = lib3/yaml
+	url = https://github.com/yaml/pyyaml
