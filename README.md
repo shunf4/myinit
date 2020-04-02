@@ -1,5 +1,7 @@
 ## myinit - 简要解释
 
+myinit（目前自用）是一个可配置的系统初始化工具和点文件（dotfiles）管理工具，基于 .tar.gz 格式，可解包打包，有简单的版本更新功能。
+
 需要目标系统有 bash、vim（你也可以不用但是要指定 EDITOR 环境变量为你喜欢的编辑器）、 python3.7。也可以试试用 pyinstaller 打包的可执行文件 `_myinit`，但会出问题，不推荐。
 
 - [.tar.gz]：存档包

@@ -3,18 +3,19 @@ confVersion: 1
 id: my_ubuntu_conf
 expectAsUser: root
 
-# list common variables.
+# commonVarDict: list common variables.
 # format: {"varname": varObject, ...}
+# varObject repensents a variable, which can reference other variables.
 commonVarDict:
   var1: "value1" # varObject can be a string, which is intuitive
   var2:
-    value: "value2" # varObject can be {"value": "a string"}, fixing its value
+    value: "value2" # varObject can be {"value": "a string"}, fixing its value. This is equivalent to the previous representation
   var3:
-    defaultValue: "value3" # varObject can be {"defaultValue": "a string"}. When this type of var is being resolved, myinit will ask the user for its value. The user can hit return key to use the default Value.
+    defaultValue: "value3" # varObject can be {"defaultValue": "a string"}. When this type of var is being resolved, myinit will ask the user for its value. The user can hit return key without inputing anything to use the default Value.
   var4: {} # varObject can be {}. When this type of var is being resolved, myinit will ask the user for its value.
   var5:
-    refVar: var1 # varObject can be {"refVar": "anotherVarName"} referenced a variable. Note: every var reference is looked up again from the very context of the start of variable resolving (e.g. in an entry, every refVar is resolved by first looking at its varDict, no matter where the currently referencing varObject is)
-  var6: "{var3} wow wow" # varObject can be a string which in python3 uses a string formatter. In this case the referenced variables will be resolved in the same way as refVar.
+    refVar: var1 # varObject can be {"refVar": "anotherVarName"}, referencing a variable. Note: (tldr: the resolving of references are done in the way of C MACROS) every var reference is looked up again from the very context of the start of variable resolving (e.g. in an entry, every refVar is resolved by first looking at its varDict, no matter where the currently referencing varObject is)
+  var6: "{var3} wow wow" # varObject can be a string which in python3 is recognized by a string formatter. In this case the referenced variables will be resolved in the same way as refVar.
   var7: # its final value will be "{var4} <- do not resolve this!" itself
     value: "{var4} <- do not resolve this!"
     doNotFormat: true
@@ -29,10 +30,11 @@ commonVarDict:
   WorkspaceDir: "/root/my_ws/"
 
 entries:
-  - name: command executer 1
-    id: wow/command1
-    type: command
-    command:
+  # one entry is one thing to *do* when unpacking. these entries are executed in order.
+  - name: command executer 1 # name is a string.
+    id: wow/command1 # id is a string.
+    type: command # type can be command or file.
+    command: # specify the command for a command-type entry. its value is a varObject.
       value: |
         set -eo pipefail
 
@@ -46,7 +48,7 @@ entries:
           exit 1
         fi
       doNotFormat: true
-    asUser: nobody
+    asUser: nobody # asUser is a string, specifying the user to run as.
 
   - name: command executer 2
     id: wow/command2
@@ -64,7 +66,7 @@ entries:
         else
           exit 1
         fi
-    varDict: # varDict is first checked when resolving a var
+    varDict: # varDict is first checked when resolving a var in an entry
       myself:
         refVar: myself_2
       myself_2:
@@ -74,15 +76,15 @@ entries:
     id: wow/file_adder
     type: file
     askForConfirm: true # false by default
-    files:
-      - name: "a.sh"
-        archiveDir:
+    files: # the files are unpacked/packed in order.
+      - name: "a.sh" # name is a string.
+        archiveDir: # archiveDir is a varObject, specifying the path in archive file.
           refVar: wow/file_adder/myArchiveDir
-        systemDir:
+        systemDir: # systemDir is a varObject, specifying the path in source or target filesystem.
           refVar: wow/file_adder/mySystemDir
-        owner: "root:root"
-        mode: "0644"
-        expectWhenUnpack: none # notExist | exist | none
+        owner: "root:root" # owner is a string, specifying the owner of file in target filesystem.
+        mode: "0644" # mode is a string or octal integer, specifying the permission bits of file in target filesystem.
+        expectWhenUnpack: none # expects whether the file exist when unpacking. can be notExist | exist | none
 
       - name: "b.sh"
         archiveDir: "var/" # when unpacking, will extract from var/b.sh in archive file. Vice versa for packing.
