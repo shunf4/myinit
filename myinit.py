@@ -412,13 +412,15 @@ def command_unpack(opts: dict, rest_argv: List[str]):
             if not opts["dry"]:
                 with tempfile.TemporaryDirectory() as tmp_dir_path:
                     tmp_fifo_path = os.path.join(tmp_dir_path, "fifo")
+                    env = os.environ.copy()
                     if as_user is None or as_user == Consts["CurrentUser"]:
+                        env["SHLVL"] = "2"
                         bash_command = ["bash", "-i", "-l", tmp_fifo_path]
                     else:
-                        bash_command = ["sudo", "-u", as_user, "-i", "bash", "-i", "-l", tmp_fifo_path]
+                        bash_command = ["sudo", "-u", as_user, "-i", "SHLVL=2", "bash", "-i", "-l", tmp_fifo_path]
 
                     os.mkfifo(tmp_fifo_path)
-                    proc = subprocess.Popen(bash_command)
+                    proc = subprocess.Popen(bash_command, env=env)
                     with contextlib.closing(open(tmp_fifo_path, "w")) as fifo:
                         fifo.write(command)
 
